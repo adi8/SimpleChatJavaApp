@@ -1,0 +1,132 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package server;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+
+/**
+ *
+ * @author Aditya Venkateshwaran
+ */
+public class Server {
+
+    private static ArrayList user;
+    private static ArrayList pass;
+    
+    /**
+     * @param args the command line arguments
+     * @throws java.io.IOException
+     */
+    public static void main(String[] args) throws IOException 
+    {
+        int port = 4119;
+        //port = Integer.parseInt(Arrays.toString(args));
+        
+        init();
+        ServerSocket ss = new ServerSocket(port);
+        
+        System.out.println("Server Started");
+        
+        while(true)
+        {
+            Socket s = ss.accept();
+            InputStreamReader isr = new InputStreamReader(s.getInputStream());
+            BufferedReader br = new BufferedReader(isr);
+
+            String input = br.readLine();
+
+            System.out.println(input);
+
+            String in[] = input.split(" ");   
+            
+            OutputStreamWriter osw = new OutputStreamWriter(s.getOutputStream());
+            BufferedWriter bw = new BufferedWriter(osw);
+            
+            if(authenticate(in))
+            {
+                bw.write("Welcome!\n");
+            }
+            else
+            {
+                bw.write("Either user not registered or passwords didn't match\n");
+            }
+            
+            bw.flush();
+            
+        }
+    }
+
+
+    
+    public static void init() throws FileNotFoundException, IOException
+    {
+        user = new ArrayList();
+        pass = new ArrayList();    
+        
+        FileInputStream fis;
+        int port;
+        File f;
+        byte in[];
+        int l, i;
+        
+        f = new File("user_pass.txt");
+        fis = new FileInputStream(f);
+        l = (int)f.length();
+        in = new byte[l];
+        fis.read(in);
+        fis.close();
+        
+        String u_p_string = new String(in);
+        
+        String temp[]= u_p_string.split(" ");
+        
+        String temp_usr="";
+        String temp_pass="";
+        
+        for(i = 0; i < temp.length; i++)
+        {
+            if(i % 2 == 0)
+                temp_usr += temp[i].trim()+" ";
+            else
+                temp_pass += temp[i].trim()+ " ";
+        }
+        
+        String p[] = temp_pass.split(" ");
+        String u[] = temp_usr.split(" ");
+        
+        for(i = 0; i < u.length; i++)
+        {
+            user.add(u[i]);
+            pass.add(p[i]);
+        }
+    }
+    
+    public static boolean authenticate(String a[])
+    {
+        int temp;
+        if(user.contains(a[1]))
+        {
+            temp = user.indexOf(a[1]);
+
+            if(pass.get(temp).equals(a[2]))
+                return true;
+            
+            return false;
+        }
+        
+        return false;
+    }
+}
