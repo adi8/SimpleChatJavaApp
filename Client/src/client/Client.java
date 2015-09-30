@@ -27,8 +27,6 @@ public class Client {
      */
     public static void main(String[] args) throws IOException 
     {
-       
-        
         InputStream is;
         InputStreamReader isr;
         BufferedReader br;

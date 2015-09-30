@@ -59,26 +59,18 @@ public class ServerThread extends Thread
                 osw = new OutputStreamWriter(os);
                 bw = new BufferedWriter(osw);
                 
-                long sec=0;
-                boolean blocked = Server.users_blocked.contains(in[1]);
-                if(blocked)
-                {
-                    sec = System.currentTimeMillis() - Server.users_blocked.get(in[1]);
-                    if(sec>Server.BLOCK_TIME)
-                    {
-                        Server.users_blocked.remove(in[1]);
-                        blocked = false;
-                    }
-                }
+                long sec = Server.isBlocked(in[1]);
                 
-                if(!blocked && Server.authenticate(in))
+                if(sec!=-1 && Server.authenticate(in))
                 {
                     flag = true;
-                    Server.users_ol.add(in[1]);
+                    Server.users_ol.put(in[1], s.getInetAddress());
+                    if(Server.users_offline.contains(in[1]))
+                        Server.users_offline.remove(in[1]);
                     bw.write("Welcome!\n");
                     bw.write("2\n");
                 }
-                else if(blocked)
+                else if(sec == -1)
                 {
                     bw.write("User is blocked. Try after "+(60-(sec/1000))+" seconds.\n");
                     bw.write("0\n");
