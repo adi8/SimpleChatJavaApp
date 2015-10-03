@@ -125,7 +125,7 @@ public class Server {
         for(i = 0; i < usr_ol.length; i++)
         {
             if(!usr.equals(usr_ol[i]))
-                usrol += usr_ol[i] +"\n";
+                usrol += usr_ol[i] +" ";
         }
         
         if(usrol.equals(""))
@@ -140,17 +140,21 @@ public class Server {
         users_offline.put(usr, System.currentTimeMillis());
     }
     
-    public static String wholast(String inp[])
+    public static String wholast(String inp)
     {
         String tmp = Arrays.toString(users_ol.keySet().toArray());
         String ul[] = tmp.substring(1, tmp.length()-1).split(", ");
         String user_last = "";
+        String t_u[] =inp.split(" ");
         int i;
         
         for(i = 0; i < ul.length; i++)
-            user_last += ul[i] + "\n";
+        {
+            if(!t_u[1].equalsIgnoreCase(ul[i]))
+                user_last += ul[i] + " ";
+        }
         
-        long limit = Integer.parseInt(inp[2])*60*60*1000;
+        long limit = Integer.parseInt(t_u[0])*60*1000;
         long time = System.currentTimeMillis() - limit;
         
         if(!users_offline.isEmpty())
@@ -159,8 +163,8 @@ public class Server {
             for(String key : keys)
             {
                 long utime = users_offline.get(key);
-                if(utime > time)
-                    user_last += key +"\n";
+                if(utime > time && !t_u[1].equalsIgnoreCase(ul[i]))
+                        user_last += key +" ";
             }
         }
         

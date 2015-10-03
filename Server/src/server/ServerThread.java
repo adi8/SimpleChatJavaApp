@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 public class ServerThread extends Thread 
 {
     private Socket s;
+    private String username;
     
     public ServerThread(Socket clientSocket)
     {
@@ -95,6 +96,9 @@ public class ServerThread extends Thread
                     }
                 }
                 bw.flush();
+
+                username = in[1];
+                
             }while(flag == false && i!=0);
             
             if(flag==true)
@@ -105,21 +109,22 @@ public class ServerThread extends Thread
                 do
                 {
                     command = br.readLine();
-
-                    switch(command.split(" ")[0])
+                    String tmp[] = command.split(" ");
+                    
+                    switch(tmp[0])
                     {
                         case "whoelse":
-                            output = Server.whoelse(in[1]);
+                            output = Server.whoelse(username);
                             bw.write(output+"\n");
                             bw.flush();
                             break;
                         case "wholast":
-                            output = Server.wholast(in);
+                            output = Server.wholast(tmp[1]+" "+username);
                             bw.write(output+"\n");
                             bw.flush();
                             break;
                         case "logout":
-                            Server.logout(in[1]);
+                            Server.logout(username);
                             bw.write("Logged Out.\n");
                             bw.flush();
                             break;
