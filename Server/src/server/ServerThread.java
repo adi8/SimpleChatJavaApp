@@ -13,6 +13,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,7 +25,16 @@ import java.util.logging.Logger;
 public class ServerThread extends Thread 
 {
     private Socket s;
-    private String username;
+    protected String username;
+//    protected BlockingQueue messages = new LinkedBlockingQueue();
+    
+    private InputStream is = null;   
+    private InputStreamReader isr= null;
+    private BufferedReader br = null;
+    
+    private OutputStream os = null;
+    private OutputStreamWriter osw = null;
+    private BufferedWriter bw = null;
     
     public ServerThread(Socket clientSocket)
     {
@@ -34,14 +45,6 @@ public class ServerThread extends Thread
     {
         try 
         {
-            InputStream is = null;   
-            InputStreamReader isr= null;
-            BufferedReader br = null;
-            
-            OutputStream os = null;
-            OutputStreamWriter osw = null;
-            BufferedWriter bw = null;
-            
             boolean flag = false;
             int i = 3;
             String in[];
@@ -98,6 +101,8 @@ public class ServerThread extends Thread
                 bw.flush();
 
                 username = in[1];
+                this.setName(username);
+                Server.sthreads.add(this);
                 
             }while(flag == false && i!=0);
             
@@ -123,6 +128,9 @@ public class ServerThread extends Thread
                             bw.write(output+"\n");
                             bw.flush();
                             break;
+                        case "broadcast":
+                            Server.broadcast(tmp[1], username);
+                            break;
                         case "logout":
                             Server.logout(username);
                             bw.write("Logged Out.\n");
@@ -138,6 +146,19 @@ public class ServerThread extends Thread
             
         } catch (IOException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    public void sendMsg(String msg) throws IOException
+    {
+        os = s.getOutputStream();
+        osw = new OutputStreamWriter(os);
+        bw = new BufferedWriter(osw);
+        
+        bw.write(msg+"\n");
+        bw.flush();
+    }
+    
 }

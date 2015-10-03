@@ -31,6 +31,7 @@ public class Server {
     protected static final long BLOCK_TIME = 60*1000;
     protected static Hashtable<String, Long> users_blocked = new Hashtable<String, Long>();
     protected static Hashtable<String, Long> users_offline = new Hashtable<String, Long>();
+    protected static ArrayList<ServerThread> sthreads = new ArrayList<ServerThread>();
     
     /**
      * @param args the command line arguments
@@ -185,5 +186,17 @@ public class Server {
                 tmp = -1;
         }
         return tmp;
+    }
+    
+    public static void broadcast(String msg, String name) throws InterruptedException
+    {
+        for(ServerThread s : sthreads)
+        {
+            if(!s.getName().equalsIgnoreCase(name))
+            {   
+                s.sendMsg(name+":"+msg);
+            }
+            
+        }
     }
 }
