@@ -149,12 +149,14 @@ public class Server {
         String t_u[] =inp.split(" ");
         int i;
         
-        for(i = 0; i < ul.length; i++)
+        if(ul.length!=0)
         {
-            if(!t_u[1].equalsIgnoreCase(ul[i]))
-                user_last += ul[i] + " ";
+            for(i = 0; i < ul.length; i++)
+            {
+                if(!t_u[1].equalsIgnoreCase(ul[i]))
+                    user_last += ul[i] + " ";
+            }
         }
-        
         long limit = Integer.parseInt(t_u[0])*60*1000;
         long time = System.currentTimeMillis() - limit;
         
@@ -164,7 +166,7 @@ public class Server {
             for(String key : keys)
             {
                 long utime = users_offline.get(key);
-                if(utime > time && !t_u[1].equalsIgnoreCase(ul[i]))
+                if(utime > time && !t_u[1].equalsIgnoreCase(key))
                         user_last += key +" ";
             }
         }
@@ -188,7 +190,7 @@ public class Server {
         return tmp;
     }
     
-    public static void broadcast(String msg, String name) throws InterruptedException
+    public static void broadcast(String msg, String name) throws InterruptedException, IOException
     {
         for(ServerThread s : sthreads)
         {
@@ -196,7 +198,6 @@ public class Server {
             {   
                 s.sendMsg(name+":"+msg);
             }
-            
         }
     }
 }

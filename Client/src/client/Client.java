@@ -20,21 +20,23 @@ import java.util.Arrays;
  *
  * @author Aditya Venkateshwaran
  */
-public class Client {
+public class Client extends Thread{
+    
+    private static Socket s;
+    private static InputStream is;
+    private static InputStreamReader isr;
+    private static BufferedReader br;
+        
+    private static OutputStream os;
+    private static OutputStreamWriter osw;
+    private static BufferedWriter bw;
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws IOException 
+    public static void main(String[] args) throws IOException, InterruptedException 
     {
-        InputStream is;
-        InputStreamReader isr;
-        BufferedReader br;
-        
-        OutputStream os;
-        OutputStreamWriter osw;
-        BufferedWriter bw;
-        
+                
         //String temp[] = Arrays.toString(args).split(" ");
         
         int port;
@@ -46,7 +48,7 @@ public class Client {
         //ip = temp[0];
         port = 4119;
         ip = "10.6.31.102";
-        Socket s = new Socket("localhost", port);
+        s = new Socket("localhost", port);
         //InetAddress localAddr = InetAddress.getByName("locahost");
         //Socket s  = new Socket(ip, port, locaAddr, port);
         int tmp;
@@ -82,26 +84,21 @@ public class Client {
                 break;
         }
         
+        ClientReceiveThread c = new ClientReceiveThread(s);
+        c.start();
+        
         if(!(tmp == 0))
         {    
-            do
+            while(true)
             {
-               System.out.print("Command: ");
+               //System.out.println("Command: ");
                br = new BufferedReader(new InputStreamReader(System.in));
                command = br.readLine();
-
+               
                bw.write(command+"\n");
                bw.flush();
-
-               is = s.getInputStream();
-               isr = new InputStreamReader(is);
-               br = new BufferedReader(isr);
-
-               msg = br.readLine();
-               System.out.println(msg);
-
-            }while(!msg.equals("Logged Out."));
+               Client.sleep(500);
+            }
         }
     }
-    
 }

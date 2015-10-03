@@ -129,7 +129,8 @@ public class ServerThread extends Thread
                             bw.flush();
                             break;
                         case "broadcast":
-                            Server.broadcast(tmp[1], username);
+                            String t[] = command.split(" ", 2);
+                            Server.broadcast(t[1], username);
                             break;
                         case "logout":
                             Server.logout(username);
