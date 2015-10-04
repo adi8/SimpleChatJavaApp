@@ -15,12 +15,20 @@ import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
  * @author Aditya Venkateshwaran
  */
-public class Client extends Thread{
+public class Client
+{
     
     private static Socket s;
     private static InputStream is;
@@ -30,6 +38,8 @@ public class Client extends Thread{
     private static OutputStream os;
     private static OutputStreamWriter osw;
     private static BufferedWriter bw;
+    
+    private static final long TIME_OUT = 1*60*1000;
 
     /**
      * @param args the command line arguments
@@ -41,8 +51,8 @@ public class Client extends Thread{
         
         int port;
         String ip;
-        String command="";
-        String msg = "";
+        String command;
+        String msg;
         
         //port = Integer.parseInt(temp[1]);
         //ip = temp[0];
@@ -88,17 +98,17 @@ public class Client extends Thread{
         {   
             ClientReceiveThread c = new ClientReceiveThread(s);
             c.start();
-        
-            System.out.println("Enter valid commands to communicate!");
+            
+            System.out.println("Enter commands to start chatting!");
             
             while(true)
             {
-               //System.out.println("Command: ");
-               br = new BufferedReader(new InputStreamReader(System.in));
-               command = br.readLine();
-               
-               bw.write(command+"\n");
-               bw.flush();
+                //System.out.print("Command:");
+                br = new BufferedReader(new InputStreamReader(System.in));
+                command = br.readLine(); 
+                
+                bw.write(command+"\n");
+                bw.flush();
             }
         }
     }

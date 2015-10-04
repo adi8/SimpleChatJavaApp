@@ -49,7 +49,7 @@ public class ServerThread extends Thread
             isr = new InputStreamReader(is);
             br = new BufferedReader(isr);
             
-            String input="";
+            String input;
             input = br.readLine();
             
             String in[] = input.split(" ");
@@ -58,7 +58,6 @@ public class ServerThread extends Thread
             {
                 String command;
                 String output;
-                command = null;
                 do
                 {
                     command = br.readLine();
