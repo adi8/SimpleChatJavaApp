@@ -45,69 +45,16 @@ public class ServerThread extends Thread
     {
         try 
         {
-            boolean flag = false;
-            boolean blocked = false;
-            int i = 3;
+            is = s.getInputStream();
+            isr = new InputStreamReader(is);
+            br = new BufferedReader(isr);
             
-            do
-            {
-                is = s.getInputStream();
-                isr = new InputStreamReader(is);
-                br = new BufferedReader(isr);
+            String input="";
+            input = br.readLine();
             
-                String input="";
-                input = br.readLine();
+            String in[] = input.split(" ");
             
-                String in[] = input.split(" ");
-            
-                os = s.getOutputStream();
-                osw = new OutputStreamWriter(os);
-                bw = new BufferedWriter(osw);
-                
-                blocked = Server.isBlocked(in[0]);
-                
-                if(!blocked && Server.authenticate(in))
-                {
-                    flag = true;
-                    Server.users_ol.put(in[0], s.getInetAddress());
-                    if(Server.users_offline.contains(in[0]))
-                        Server.users_offline.remove(in[0]);
-                    username = in[0];
-                    this.setName(username);
-                    Server.sthreads.add(this);
-                    bw.write("Welcome!\n");
-                    bw.write("2\n");
-                }
-                else if(blocked)
-                {
-                    i = 0;
-                    long sec = System.currentTimeMillis() - Server.users_blocked.get(in[0]);
-                    bw.write("User is blocked. Try after "+(60 -(sec/1000))+" seconds.\n");
-                    bw.write("0\n");
-                }
-                else
-                {
-                    i--;
-                    if(i!=0)
-                    {
-                        bw.write("Either user not registered or password didn't match. Try Again! "
-                                + "("+i+" attempts remaining.)\n");
-                        bw.write("1\n");
-                    }
-                    else
-                    {
-                        if(Server.user.contains(in[0]))
-                        {
-                            Server.users_blocked.put(in[0], System.currentTimeMillis());
-                        }
-                        bw.write("Blocked\n");
-                        bw.write("0\n");
-                    }
-                }
-                bw.flush();
-            }while(flag == false && i!=0);
-            
-            if(flag==true)
+            if(login(in))
             {
                 String command;
                 String output;
@@ -176,5 +123,63 @@ public class ServerThread extends Thread
             bw.write(msg+"\n");
             bw.flush();
         }
+    }
+    
+    public boolean login(String in[]) throws IOException
+    {
+        boolean blocked;
+        boolean flag = false;
+        int i = 3;
+        do
+        {
+            os = s.getOutputStream();
+            osw = new OutputStreamWriter(os);
+            bw = new BufferedWriter(osw);
+                
+            blocked = Server.isBlocked(in[0]);
+            
+            if(!blocked && Server.authenticate(in))
+            {
+                flag = true;
+                Server.users_ol.put(in[0], s.getInetAddress());
+                if(Server.users_offline.contains(in[0]))
+                    Server.users_offline.remove(in[0]);
+                username = in[0];
+                this.setName(username);
+                Server.sthreads.add(this);
+                bw.write("Welcome!\n");
+                bw.write("2\n");
+                
+            }
+            else if(blocked)
+            {
+                i = 0;
+                long sec = System.currentTimeMillis() - Server.users_blocked.get(in[0]);
+                bw.write("User is blocked. Try after "+(60 -(sec/1000))+" seconds.\n");
+                bw.write("0\n");
+            }
+            else
+            {
+                i--;
+                if(i!=0)
+                {
+                    bw.write("Either user not registered or password didn't match. Try Again! "
+                                + "("+i+" attempts remaining.)\n");
+                    bw.write("1\n");
+                }
+                else
+                {
+                    if(Server.user.contains(in[0]))
+                    {
+                        Server.users_blocked.put(in[0], System.currentTimeMillis());
+                    }
+                    bw.write("Blocked\n");
+                    bw.write("0\n");
+                }
+            }
+            bw.flush();
+        }while(flag == false && i!=0);
+        
+        return flag;
     }
 }
