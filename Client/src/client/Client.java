@@ -59,7 +59,7 @@ public class Client extends Thread{
             br = new BufferedReader(isr);
             
             System.out.println("Enter Username:");
-            String username = br.readLine();
+            String username = br.readLine().trim();
 
             System.out.println("Enter the password:");
             String password = br.readLine();
@@ -87,6 +87,8 @@ public class Client extends Thread{
         ClientReceiveThread c = new ClientReceiveThread(s);
         c.start();
         
+        System.out.println("Enter valid commands to communicate!");
+        
         if(!(tmp == 0))
         {    
             while(true)
@@ -97,7 +99,7 @@ public class Client extends Thread{
                
                bw.write(command+"\n");
                bw.flush();
-               Client.sleep(500);
+               //Client.sleep(500);
             }
         }
     }

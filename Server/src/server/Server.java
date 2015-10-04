@@ -21,12 +21,12 @@ import java.util.Set;
  *
  * @author Aditya Venkateshwaran
  */
-public class Server {
+public class Server 
+{
 
     protected static ArrayList user;
     protected static ArrayList pass;
     private static int port;
-    //protected static ArrayList users_ol = new ArrayList();
     protected static Hashtable<String, InetAddress> users_ol = new Hashtable<String, InetAddress>();
     protected static final long BLOCK_TIME = 60*1000;
     protected static Hashtable<String, Long> users_blocked = new Hashtable<String, Long>();
@@ -50,9 +50,7 @@ public class Server {
         while(true)
         {
             Socket s = ss.accept();
-            
             new ServerThread(s).start();
-            
         }
     }
 
@@ -196,8 +194,66 @@ public class Server {
         {
             if(!s.getName().equalsIgnoreCase(name))
             {   
-                s.sendMsg(name+":"+msg);
+                s.messages.put(name+":"+msg);
+                s.sendMsg();
             }
         }
     }
+    
+    public static void broadcast(String inp[], String name) throws InterruptedException, IOException
+    {
+        ArrayList u = new ArrayList();
+        String msg = "";
+        int i=0;
+        int l;
+        
+        l = inp.length;
+        for(i = 2; i < l; i++)
+        {
+            if(inp[i].equalsIgnoreCase("message"))
+                break;
+            else
+                u.add(inp[i]);
+        }
+        
+        for(i=i+1;i < l; i++)
+        {
+            msg += inp[i]+" ";
+        }
+        
+        for(ServerThread s : sthreads)
+        {
+            if(u.contains(s.getName()))
+            {
+                s.messages.put(name+":"+msg);
+                s.sendMsg();
+            }
+        }
+    }
+    
+    public static void privateMsg(String command, String name) throws InterruptedException, IOException
+    {
+        String tmp[] = command.split(" ");
+        String u = tmp[1];
+        String msg = "";
+        int i;
+        int l = tmp.length;
+        
+        for(i = 2; i < l; i++)
+            msg+=tmp[i]+" ";
+        
+        if(users_ol.containsKey(u))
+        {
+            for(ServerThread s: sthreads)
+            {
+                if(s.getName().equalsIgnoreCase(u))
+                {
+                    s.messages.put(name+":"+msg);
+                    s.sendMsg();
+                    break;
+                }
+            }
+        }
+    }
+    
 }

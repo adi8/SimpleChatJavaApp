@@ -26,7 +26,7 @@ public class ServerThread extends Thread
 {
     private Socket s;
     protected String username;
-//    protected BlockingQueue messages = new LinkedBlockingQueue();
+    protected BlockingQueue messages = new LinkedBlockingQueue();
     
     private InputStream is = null;   
     private InputStreamReader isr= null;
@@ -129,8 +129,18 @@ public class ServerThread extends Thread
                             bw.flush();
                             break;
                         case "broadcast":
-                            String t[] = command.split(" ", 2);
-                            Server.broadcast(t[1], username);
+                            if(!tmp[1].equalsIgnoreCase("user"))
+                            {
+                                String t[] = command.split(" ", 2);
+                                Server.broadcast(t[1], username);
+                            }
+                            else
+                            {
+                                Server.broadcast(tmp, username);
+                            }
+                            break;
+                        case "message":
+                            Server.privateMsg(command,username);
                             break;
                         case "logout":
                             Server.logout(username);
@@ -152,14 +162,18 @@ public class ServerThread extends Thread
         }
     }
     
-    public void sendMsg(String msg) throws IOException
+    public void sendMsg() throws IOException, InterruptedException
     {
+        String msg="";
         os = s.getOutputStream();
         osw = new OutputStreamWriter(os);
         bw = new BufferedWriter(osw);
         
-        bw.write(msg+"\n");
-        bw.flush();
+        while(!messages.isEmpty())
+        {
+            msg = (String) messages.take();
+            bw.write(msg+"\n");
+            bw.flush();
+        }
     }
-    
 }
