@@ -100,11 +100,11 @@ public class Server
     public static boolean authenticate(String a[])
     {
         int temp;
-        if(user.contains(a[1]))
+        if(user.contains(a[0]))
         {
-            temp = user.indexOf(a[1]);
+            temp = user.indexOf(a[0]);
 
-            if(pass.get(temp).equals(a[2]))
+            if(pass.get(temp).equals(a[1]))
                 return true;
             
             return false;
@@ -172,10 +172,12 @@ public class Server
         return user_last;
     }
     
-    public static long isBlocked(String usr)
+    public static boolean isBlocked(String usr)
     {
         long tmp = 0;
-        if(users_blocked.contains(usr))
+        boolean flag = false;
+        
+        if(users_blocked.containsKey(usr))
         {
             tmp = System.currentTimeMillis() - Server.users_blocked.get(usr);
             if(tmp>Server.BLOCK_TIME)
@@ -183,9 +185,11 @@ public class Server
                 Server.users_blocked.remove(usr);
             }
             else
-                tmp = -1;
+            {
+                flag = true;
+            }
         }
-        return tmp;
+        return flag;
     }
     
     public static void broadcast(String msg, String name) throws InterruptedException, IOException

@@ -68,7 +68,7 @@ public class Client extends Thread{
             osw = new OutputStreamWriter(os);
             bw = new BufferedWriter(osw);
 
-            bw.write(ip+" "+username+" "+password+"\n");
+            bw.write(username+" "+password+"\n");
             bw.flush();
 
             is = s.getInputStream();
@@ -84,13 +84,13 @@ public class Client extends Thread{
                 break;
         }
         
-        ClientReceiveThread c = new ClientReceiveThread(s);
-        c.start();
-        
-        System.out.println("Enter valid commands to communicate!");
-        
         if(!(tmp == 0))
-        {    
+        {   
+            ClientReceiveThread c = new ClientReceiveThread(s);
+            c.start();
+        
+            System.out.println("Enter valid commands to communicate!");
+            
             while(true)
             {
                //System.out.println("Command: ");
@@ -99,7 +99,6 @@ public class Client extends Thread{
                
                bw.write(command+"\n");
                bw.flush();
-               //Client.sleep(500);
             }
         }
     }

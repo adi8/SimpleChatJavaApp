@@ -46,8 +46,9 @@ public class ServerThread extends Thread
         try 
         {
             boolean flag = false;
+            boolean blocked = false;
             int i = 3;
-            String in[];
+            
             do
             {
                 is = s.getInputStream();
@@ -57,26 +58,31 @@ public class ServerThread extends Thread
                 String input="";
                 input = br.readLine();
             
-                in = input.split(" ");
+                String in[] = input.split(" ");
             
                 os = s.getOutputStream();
                 osw = new OutputStreamWriter(os);
                 bw = new BufferedWriter(osw);
                 
-                long sec = Server.isBlocked(in[1]);
+                blocked = Server.isBlocked(in[0]);
                 
-                if(sec!=-1 && Server.authenticate(in))
+                if(!blocked && Server.authenticate(in))
                 {
                     flag = true;
-                    Server.users_ol.put(in[1], s.getInetAddress());
-                    if(Server.users_offline.contains(in[1]))
-                        Server.users_offline.remove(in[1]);
+                    Server.users_ol.put(in[0], s.getInetAddress());
+                    if(Server.users_offline.contains(in[0]))
+                        Server.users_offline.remove(in[0]);
+                    username = in[0];
+                    this.setName(username);
+                    Server.sthreads.add(this);
                     bw.write("Welcome!\n");
                     bw.write("2\n");
                 }
-                else if(sec == -1)
+                else if(blocked)
                 {
-                    bw.write("User is blocked. Try after "+(60-(sec/1000))+" seconds.\n");
+                    i = 0;
+                    long sec = System.currentTimeMillis() - Server.users_blocked.get(in[0]);
+                    bw.write("User is blocked. Try after "+(60 -(sec/1000))+" seconds.\n");
                     bw.write("0\n");
                 }
                 else
@@ -90,20 +96,15 @@ public class ServerThread extends Thread
                     }
                     else
                     {
-                        if(Server.user.contains(in[1]))
+                        if(Server.user.contains(in[0]))
                         {
-                            Server.users_blocked.put(in[1], System.currentTimeMillis());
+                            Server.users_blocked.put(in[0], System.currentTimeMillis());
                         }
                         bw.write("Blocked\n");
                         bw.write("0\n");
                     }
                 }
                 bw.flush();
-
-                username = in[1];
-                this.setName(username);
-                Server.sthreads.add(this);
-                
             }while(flag == false && i!=0);
             
             if(flag==true)
