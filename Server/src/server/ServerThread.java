@@ -63,7 +63,7 @@ public class ServerThread extends Thread
                             bw.flush();
                             break;
                         case "wholast":
-                            output = Server.wholast(tmp[1]+" "+username);
+                            output = Server.wholast(tmp[1], username);
                             bw.write(output+"\n");
                             bw.flush();
                             break;

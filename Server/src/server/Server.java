@@ -140,23 +140,23 @@ public class Server
         users_offline.put(usr, System.currentTimeMillis());
     }
     
-    public static String wholast(String inp)
+    public static String wholast(String t, String name)
     {
-        String tmp = Arrays.toString(users_ol.keySet().toArray());
-        String ul[] = tmp.substring(1, tmp.length()-1).split(", ");
-        String user_last = "";
-        String t_u[] =inp.split(" ");
+        
         int i;
         
-        if(ul.length!=0)
+        String user_last = "";
+       
+        if(!users_ol.isEmpty())
         {
-            for(i = 0; i < ul.length; i++)
+            Set<String> users = users_ol.keySet();
+            for(String s: users)
             {
-                if(!t_u[1].equalsIgnoreCase(ul[i]))
-                    user_last += ul[i] + " ";
+                if(!name.equalsIgnoreCase(s))
+                    user_last += s +" ";
             }
         }
-        long limit = Integer.parseInt(t_u[0])*60*1000;
+        long limit = Integer.parseInt(t)*60*1000;
         long time = System.currentTimeMillis() - limit;
         
         if(!users_offline.isEmpty())
@@ -165,12 +165,14 @@ public class Server
             for(String key : keys)
             {
                 long utime = users_offline.get(key);
-                if(utime > time && !t_u[1].equalsIgnoreCase(key))
+                if(utime > time && !name.equalsIgnoreCase(key))
                         user_last += key +" ";
             }
         }
-        
-        return user_last;
+        if(user_last.equalsIgnoreCase(""))
+            return "No one was Online";
+        else
+            return user_last;
     }
     
     public static boolean isBlocked(String usr)
