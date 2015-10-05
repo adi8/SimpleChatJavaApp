@@ -39,6 +39,7 @@ public class Server
      */
     public static void main(String[] args) throws IOException 
     {
+        attachShutDownHook();
         port = 4119;
         //port = Integer.parseInt(Arrays.toString(args));
         
@@ -192,45 +193,55 @@ public class Server
         return flag;
     }
     
-    public static void broadcast(String msg, String name) throws InterruptedException, IOException
-    {
-        for(ServerThread s : sthreads)
-        {
-            if(!s.getName().equalsIgnoreCase(name))
-            {   
-                s.messages.put(name+":"+msg);
-                s.sendMsg();
-            }
-        }
-    }
     
-    public static void broadcast(String inp[], String name) throws InterruptedException, IOException
+    public static void broadcast(String inp[], String name, int choice) throws InterruptedException, IOException
     {
-        ArrayList u = new ArrayList();
         String msg = "";
         int i=0;
         int l;
         
-        l = inp.length;
-        for(i = 2; i < l; i++)
+        if(choice == 1)
         {
-            if(inp[i].equalsIgnoreCase("message"))
-                break;
-            else
-                u.add(inp[i]);
-        }
-        
-        for(i=i+1;i < l; i++)
-        {
-            msg += inp[i]+" ";
-        }
-        
-        for(ServerThread s : sthreads)
-        {
-            if(u.contains(s.getName()))
+            ArrayList u = new ArrayList();
+            l = inp.length;
+            for(i = 2; i < l; i++)
             {
-                s.messages.put(name+":"+msg);
-                s.sendMsg();
+                if(inp[i].equalsIgnoreCase("message"))
+                    break;
+                else
+                    u.add(inp[i]);
+            }
+
+            for(i=i+1;i < l; i++)
+            {
+                msg += inp[i]+" ";
+            }
+
+            for(ServerThread s : sthreads)
+            {
+                if(u.contains(s.getName()))
+                {
+                    s.messages.put(name+":"+msg);
+                    s.sendMsg();
+                }
+            }
+        }
+        else
+        {
+            l = inp.length;
+            
+            for(i = 2; i < l; i++)
+            {
+                msg += inp[i]+" ";
+            }
+            
+            for(ServerThread s : sthreads)
+            {
+                if(!s.getName().equalsIgnoreCase(name))
+                {   
+                    s.messages.put(name+":"+msg);
+                    s.sendMsg();
+                }
             }
         }
     }
@@ -258,6 +269,16 @@ public class Server
                 }
             }
         }
+    }
+    
+    public static void attachShutDownHook()
+    {
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+            @Override
+            public void run(){
+                System.out.println(System.lineSeparator()+"System has been terminated!");
+            }
+        });
     }
     
 }

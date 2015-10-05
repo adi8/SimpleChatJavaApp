@@ -15,13 +15,8 @@ import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -39,23 +34,22 @@ public class Client
     private static OutputStreamWriter osw;
     private static BufferedWriter bw;
     
-    private static final long TIME_OUT = 1*60*100;
+    private static final long TIME_OUT = 1*60*1000;
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException, InterruptedException 
     {
-                
-        //String temp[] = Arrays.toString(args).split(" ");
+        attachShutDownHook();
         
         int port;
         String ip;
         String command;
         String msg;
         
-        //port = Integer.parseInt(temp[1]);
-        //ip = temp[0];
+        //port = Integer.parseInt(args[1]);
+        //ip = args[0];
         port = 4119;
         ip = "10.6.31.102";
         s = new Socket("localhost", port);
@@ -101,22 +95,50 @@ public class Client
             c.start();
             
             System.out.println("Enter commands to start chatting!");
+            System.out.print("Command:");
             
             while(true)
             {
-                System.out.println(System.currentTimeMillis()+TIME_OUT);
                 ct = new ClientTimer(s,System.currentTimeMillis()+TIME_OUT);
                 ct.start();
-                //System.out.print("Command:");
+                
                 br = new BufferedReader(new InputStreamReader(System.in));
                 command = br.readLine(); 
                 
                 ct.exit = true;
                 
-                
                 bw.write(command+"\n");
                 bw.flush();
+                
             }
         }
+    }
+    
+    public static void attachShutDownHook()
+    {
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+            @Override
+            public void run(){
+                try 
+                {
+                    if(!s.isInputShutdown())
+                    {
+                        os = s.getOutputStream();
+                        osw = new OutputStreamWriter(os);
+                        bw = new BufferedWriter(osw);
+                    
+                        bw.write("logout\n");
+                        bw.flush();
+                        System.out.println(System.lineSeparator()+"Logged out!");
+                        s.close();
+                    }
+                    else
+                        s.close();
+                    
+                } catch (IOException ex) {
+                    Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
     }
 }

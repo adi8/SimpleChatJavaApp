@@ -42,13 +42,19 @@ public class ClientReceiveThread extends Thread {
                 br = new BufferedReader(isr);
                 
                 msg = br.readLine();
-                System.out.println(msg);
+                if(!msg.equals("Logged Out."))
+                    System.out.print(System.lineSeparator()+msg+System.lineSeparator()+"Command:");
+                else
+                {
+                    System.out.println(msg);
+                    s.shutdownInput();
+                }
                 
             } catch (IOException ex) {
                 Logger.getLogger(ClientReceiveThread.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
         }while(!msg.equals("Logged Out."));
+        
         System.exit(0);
     } 
     

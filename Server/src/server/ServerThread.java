@@ -24,7 +24,7 @@ import java.util.logging.Logger;
  */
 public class ServerThread extends Thread 
 {
-    private Socket s;
+    private final Socket s;
     protected String username;
     protected BlockingQueue messages = new LinkedBlockingQueue();
     
@@ -41,20 +41,12 @@ public class ServerThread extends Thread
         s = clientSocket;   
     }
     
+    @Override
     public void run()
     {
         try 
         {
-            is = s.getInputStream();
-            isr = new InputStreamReader(is);
-            br = new BufferedReader(isr);
-            
-            String input;
-            input = br.readLine();
-            
-            String in[] = input.split(" ");
-            
-            if(login(in))
+            if(login())
             {
                 String command;
                 String output;
@@ -78,12 +70,11 @@ public class ServerThread extends Thread
                         case "broadcast":
                             if(!tmp[1].equalsIgnoreCase("user"))
                             {
-                                String t[] = command.split(" ", 2);
-                                Server.broadcast(t[1], username);
+                                Server.broadcast(tmp, username, 1);
                             }
                             else
                             {
-                                Server.broadcast(tmp, username);
+                                Server.broadcast(tmp, username, 0);
                             }
                             break;
                         case "message":
@@ -93,6 +84,7 @@ public class ServerThread extends Thread
                             Server.logout(username);
                             bw.write("Logged Out.\n");
                             bw.flush();
+                            s.close();
                             break;
                         default:
                             bw.write("Oops wrong command! Try Again\n");
@@ -102,16 +94,14 @@ public class ServerThread extends Thread
                 }while(!command.equalsIgnoreCase("logout"));
             }
             
-        } catch (IOException ex) {
-            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InterruptedException ex) {
+        } catch (IOException | InterruptedException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
     public void sendMsg() throws IOException, InterruptedException
     {
-        String msg="";
+        String msg;
         os = s.getOutputStream();
         osw = new OutputStreamWriter(os);
         bw = new BufferedWriter(osw);
@@ -124,13 +114,24 @@ public class ServerThread extends Thread
         }
     }
     
-    public boolean login(String in[]) throws IOException
+    public boolean login() throws IOException
     {
         boolean blocked;
         boolean flag = false;
         int i = 3;
+        String in[];
+                
         do
         {
+            is = s.getInputStream();
+            isr = new InputStreamReader(is);
+            br = new BufferedReader(isr);
+            
+            String input;
+            input = br.readLine();
+            
+            in = input.split(" ");
+            
             os = s.getOutputStream();
             osw = new OutputStreamWriter(os);
             bw = new BufferedWriter(osw);
