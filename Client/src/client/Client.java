@@ -39,7 +39,7 @@ public class Client
     private static OutputStreamWriter osw;
     private static BufferedWriter bw;
     
-    private static final long TIME_OUT = 1*60*1000;
+    private static final long TIME_OUT = 1*60*100;
 
     /**
      * @param args the command line arguments
@@ -96,6 +96,7 @@ public class Client
         
         if(!(tmp == 0))
         {   
+            ClientTimer ct;
             ClientReceiveThread c = new ClientReceiveThread(s);
             c.start();
             
@@ -103,9 +104,15 @@ public class Client
             
             while(true)
             {
+                System.out.println(System.currentTimeMillis()+TIME_OUT);
+                ct = new ClientTimer(s,System.currentTimeMillis()+TIME_OUT);
+                ct.start();
                 //System.out.print("Command:");
                 br = new BufferedReader(new InputStreamReader(System.in));
                 command = br.readLine(); 
+                
+                ct.exit = true;
+                
                 
                 bw.write(command+"\n");
                 bw.flush();
