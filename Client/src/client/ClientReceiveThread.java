@@ -28,7 +28,10 @@ public class ClientReceiveThread extends Thread {
     {
         s = socket;
     }
-            
+    
+    /**
+     * This method listens to the inputstream for any messages.
+     */
     @Override
     public void run() 
     {
@@ -42,11 +45,18 @@ public class ClientReceiveThread extends Thread {
                 br = new BufferedReader(isr);
                 
                 msg = br.readLine();
-                if(!msg.equals("Logged Out."))
-                    System.out.print(System.lineSeparator()+msg+System.lineSeparator()+"Command:");
-                else
+                if(!msg.equals("Logged Out.")) // Checks if the user has not logged out.
+                {
+                    System.out.print(System.lineSeparator()+msg+System.lineSeparator()+"Command:"); // Prints the messages recieved via the inputstream.
+                }
+                else if(msg.contains("terminated")) // Checks if the Server has terminated unexpectedly and sent a message.
                 {
                     System.out.println(msg);
+                    s.shutdownInput();
+                }
+                else
+                {
+                    System.out.println(msg); 
                     s.shutdownInput();
                 }
                 
@@ -55,7 +65,7 @@ public class ClientReceiveThread extends Thread {
             }
         }while(!msg.equals("Logged Out."));
         
-        System.exit(0);
+        System.exit(0); // Exit the client program as the user has logged out.
     } 
     
 }

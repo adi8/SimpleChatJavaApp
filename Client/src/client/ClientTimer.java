@@ -35,16 +35,19 @@ public class ClientTimer extends Thread {
         end = e;
     }
     
+    /**
+     *  Start a timer and sends appropriate messages when the limit is reached.
+     */
     @Override
     public void run()
     {
         
-        while(!exit && System.currentTimeMillis()<end)
+        while(!exit && System.currentTimeMillis()<end) // Waits for 'end' amount of time(seconds) and checks if the timer is to be stopped.
         {}        
         
-        if(exit)
+        if(exit) // Checks if the thread is to be interrupted.
         {
-            interrupt();
+            interrupt(); //  Interrupts the timer.
         }
         else
         {
@@ -55,9 +58,8 @@ public class ClientTimer extends Thread {
                 bw = new BufferedWriter(osw);
                 
                 System.out.println("System is logging out.");
-                bw.write("logout\n");
+                bw.write("logout\n");  // Logs out the user if the timer limit is exceeded.
                 bw.flush();
-            
                 
             } catch (IOException ex) {
                 Logger.getLogger(ClientTimer.class.getName()).log(Level.SEVERE, null, ex);

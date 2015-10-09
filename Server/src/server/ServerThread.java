@@ -41,6 +41,9 @@ public class ServerThread extends Thread
         s = clientSocket;   
     }
     
+    /**
+     * This method listens for the commands sent by the client and processes them accordingly.
+     */
     @Override
     public void run()
     {
@@ -53,7 +56,8 @@ public class ServerThread extends Thread
                 do
                 {
                     command = br.readLine();
-                    String tmp[] = command.split(" ");
+                    
+                    String tmp[] = command.split(" "); // to check what the command is. Using tmp[0].
                     
                     switch(tmp[0])
                     {
@@ -63,28 +67,52 @@ public class ServerThread extends Thread
                             bw.flush();
                             break;
                         case "wholast":
-                            output = Server.wholast(tmp[1], username);
-                            bw.write(output+"\n");
-                            bw.flush();
+                            output = "Something went wrong! Please check the time value sent. ";
+                            try
+                            {
+                                int i = Integer.parseInt(tmp[1]);
+                                output = Server.wholast(tmp[1], username);
+                            }catch(Exception e)
+                            {
+                                bw.write(output+ "\n");
+                                bw.flush();
+                            }
+                            if(!output.contains("wrong"))
+                            {
+                                bw.write(output+"\n");
+                                bw.flush();
+                            }
                             break;
                         case "broadcast":
-                            if(!tmp[1].equalsIgnoreCase("user"))
+                            if(!tmp[1].equalsIgnoreCase("user")) //  Checks if it is a broadcast user <user> message <message> command.
                             {
-                                Server.broadcast(tmp, username, 1);
+                                output = Server.broadcast(tmp, username, 1);
+                                bw.write(output);
+                                bw.flush();
+                            }
+                            else if(tmp[1].equalsIgnoreCase("message")) // Checks if it is a broadcast message <message> command.
+                            {
+                                output = Server.broadcast(tmp, username, 0);
+                                bw.write(output);
+                                bw.flush();
                             }
                             else
                             {
-                                Server.broadcast(tmp, username, 0);
+                                bw.write("Oops command sent is wrong! Please check the command\n");
+                                bw.flush();
                             }
                             break;
                         case "message":
-                            Server.privateMsg(command,username);
+                            output = Server.privateMsg(command,username);
+                            bw.write(output);
+                            bw.flush();
                             break;
                         case "logout":
                             Server.logout(username);
                             bw.write("Logged Out.\n");
                             bw.flush();
-                            s.close();
+                            Server.sthreads.remove(this);
+                            s.close(); // closes the connection.
                             break;
                         default:
                             bw.write("Oops wrong command! Try Again\n");
@@ -99,6 +127,12 @@ public class ServerThread extends Thread
         }
     }
     
+    
+    /**
+     * The method sends message received from other clients. 
+     * @throws IOException
+     * @throws InterruptedException 
+     */
     public void sendMsg() throws IOException, InterruptedException
     {
         String msg;
@@ -114,13 +148,18 @@ public class ServerThread extends Thread
         }
     }
     
+    /**
+     * The method authenticates the client.
+     * @return true: client logged in; false: Client login failed.
+     * @throws IOException 
+     */
     public boolean login() throws IOException
     {
         boolean blocked;
         boolean flag = false;
         int i = 3;
         String in[];
-                
+        
         do
         {
             is = s.getInputStream();
@@ -130,42 +169,41 @@ public class ServerThread extends Thread
             String input;
             input = br.readLine();
             
-            in = input.split(" ");
+            in = input.split(" "); // Receives the username and password from the client.
             
             os = s.getOutputStream();
             osw = new OutputStreamWriter(os);
             bw = new BufferedWriter(osw);
-                
+            
             blocked = Server.isBlocked(in[0]);
             
-            if(!blocked && Server.authenticate(in))
+            if(!blocked && Server.authenticate(in)) // Checks if the user is not blocked and if so checks if the username password combination exists in database.
             {
                 flag = true;
                 Server.users_ol.put(in[0], s.getInetAddress());
-                if(Server.users_offline.contains(in[0]))
-                    Server.users_offline.remove(in[0]);
+                if(Server.users_offline.contains(in[0])) // Checks if user was in offline list.
+                    Server.users_offline.remove(in[0]); // Removes the user from the offline list.
                 username = in[0];
-                this.setName(username);
-                Server.sthreads.add(this);
+                this.setName(username); // Sets the name of the serverthreadr to the user's name, who requests are serviced by the thread.
+                Server.sthreads.add(this); // Adds this thread to the list of active serverthreads.
                 bw.write("Welcome!\n");
-                bw.write("2\n");
-                
+                bw.write("2\n");    //indicates that the client has been autheticated and logged in.
             }
             else if(blocked)
             {
                 i = 0;
-                long sec = System.currentTimeMillis() - Server.users_blocked.get(in[0]);
+                long sec = System.currentTimeMillis() - Server.users_blocked.get(in[0]); // Retrieves the time in seconds for which the user will remain blocked.
                 bw.write("User is blocked. Try after "+(60 -(sec/1000))+" seconds.\n");
-                bw.write("0\n");
+                bw.write("0\n");    //indicates that the client has to stop and exit.
             }
             else
             {
-                i--;
+                i--; // Decreases the counter for the number of attempts allowed to a user to login.
                 if(i!=0)
                 {
                     bw.write("Either user not registered or password didn't match. Try Again! "
                                 + "("+i+" attempts remaining.)\n");
-                    bw.write("1\n");
+                    bw.write("1\n");    //indicates that the user can try entering the username & password again(max 3 times).
                 }
                 else
                 {
@@ -174,7 +212,7 @@ public class ServerThread extends Thread
                         Server.users_blocked.put(in[0], System.currentTimeMillis());
                     }
                     bw.write("Blocked\n");
-                    bw.write("0\n");
+                    bw.write("0\n");    //indicates that the client has to stop and exit.
                 }
             }
             bw.flush();
